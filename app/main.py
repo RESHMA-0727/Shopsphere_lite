@@ -4,4 +4,4 @@ app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"message": "ShopSphere Lite API Running 🚀"}
+    return {"message": "ShopSphere Lite API Running Sucessfully !! 🚀"}
