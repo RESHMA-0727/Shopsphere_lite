@@ -26,3 +26,12 @@ class Cart(Base):
     username = Column(String)
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer)
+
+# ORDER MODEL
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String)
+    product_id = Column(Integer)
+    quantity = Column(Integer)
