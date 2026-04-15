@@ -3,8 +3,13 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import models
 import hashlib
+from jose import jwt
+from datetime import datetime, timedelta
 
 router = APIRouter()
+
+SECRET_KEY = "mysecretkey"
+ALGORITHM = "HS256"
 
 # DB connection
 def get_db():
@@ -14,13 +19,24 @@ def get_db():
     finally:
         db.close()
 
+# CREATE TOKEN
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=60)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 # SIGNUP
 @router.post("/signup")
 def signup(username: str, password: str, db: Session = Depends(get_db)):
-    # hash password using sha256
+    # check if user already exists
+    existing_user = db.query(models.User).filter(models.User.username == username).first()
+    
+    if existing_user:
+        return {"error": "Username already exists"}
+
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-    # create user
     user = models.User(username=username, password=hashed_password)
     db.add(user)
     db.commit()
@@ -32,10 +48,12 @@ def signup(username: str, password: str, db: Session = Depends(get_db)):
 def login(username: str, password: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
 
-    # hash input password
     hashed_input = hashlib.sha256(password.encode()).hexdigest()
 
     if not user or user.password != hashed_input:
         return {"error": "Invalid credentials"}
 
-    return {"message": "Login successfull"}
+    # create JWT token
+    token = create_access_token({"sub": user.username})
+
+    return {"access_token": token}
