@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import models
+from app.auth.routes import get_current_user
 
 router = APIRouter(prefix="/orders")
 
@@ -12,15 +13,19 @@ def get_db():
     finally:
         db.close()
 
-# PLACE ORDER
+# PLACE ORDER (PROTECTED)
 @router.post("/place")
-def place_order(username: str, db: Session = Depends(get_db)):
-    cart_items = db.query(models.Cart).filter(models.Cart.username == username).all()
+def place_order(db: Session = Depends(get_db),
+                user: str = Depends(get_current_user)):
+
+    if not user:
+        return {"error": "Unauthorized"}
+
+    cart_items = db.query(models.Cart).filter(models.Cart.username == user).all()
 
     if not cart_items:
         return {"error": "Cart is empty"}
 
-    # move cart items to orders
     for item in cart_items:
         order = models.Order(
             username=item.username,
@@ -29,14 +34,18 @@ def place_order(username: str, db: Session = Depends(get_db)):
         )
         db.add(order)
 
-    # clear cart
-    db.query(models.Cart).filter(models.Cart.username == username).delete()
+    db.query(models.Cart).filter(models.Cart.username == user).delete()
     db.commit()
 
     return {"message": "Order placed successfully"}
 
-# VIEW ORDERS
+# VIEW ORDERS (PROTECTED)
 @router.get("/")
-def get_orders(username: str, db: Session = Depends(get_db)):
-    orders = db.query(models.Order).filter(models.Order.username == username).all()
+def get_orders(db: Session = Depends(get_db),
+               user: str = Depends(get_current_user)):
+
+    if not user:
+        return {"error": "Unauthorized"}
+
+    orders = db.query(models.Order).filter(models.Order.username == user).all()
     return orders
