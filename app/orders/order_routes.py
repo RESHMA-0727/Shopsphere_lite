@@ -13,7 +13,7 @@ def get_db():
     finally:
         db.close()
 
-# PLACE ORDER (PROTECTED)
+# PLACE ORDER
 @router.post("/place")
 def place_order(db: Session = Depends(get_db),
                 user: str = Depends(get_current_user)):
@@ -26,26 +26,40 @@ def place_order(db: Session = Depends(get_db),
     if not cart_items:
         return {"error": "Cart is empty"}
 
+    total_price = 0
+    orders_created = []
+
     for item in cart_items:
-        order = models.Order(
-            username=item.username,
-            product_id=item.product_id,
-            quantity=item.quantity
-        )
-        db.add(order)
+        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+
+        if product:
+            total_price += product.price * item.quantity
+
+            order = models.Order(
+                username=item.username,
+                product_id=item.product_id,
+                quantity=item.quantity
+            )
+            db.add(order)
+            orders_created.append({
+                "product_id": item.product_id,
+                "quantity": item.quantity
+            })
 
     db.query(models.Cart).filter(models.Cart.username == user).delete()
     db.commit()
 
-    return {"message": "Order placed successfully"}
+    return {
+        "message": "Order placed successfully",
+        "total_price": total_price,
+        "items": orders_created
+    }
 
-# VIEW ORDERS (PROTECTED)
+# VIEW ORDERS
 @router.get("/")
 def get_orders(db: Session = Depends(get_db),
                user: str = Depends(get_current_user)):
 
-    if not user:
-        return {"error": "Unauthorized"}
-
     orders = db.query(models.Order).filter(models.Order.username == user).all()
-    return orders
+
+    return {"orders": orders}
