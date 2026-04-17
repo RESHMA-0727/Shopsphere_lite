@@ -2,77 +2,96 @@
 
 ## 🚀 Overview
 ShopSphere Lite is a modular e-commerce backend built using FastAPI.  
-It supports user authentication, product management, cart functionality, and order processing.
-
-This project is designed in a scalable way, similar to microservices architecture.
+It simulates a real-world online shopping system with authentication, product management, cart functionality, and order processing.
 
 ---
 
-## 🧠 Features Implemented
+## 🧠 Architecture
+
+The system is divided into modules:
+
+- 🔐 Auth Module → Signup, Login, JWT Authentication  
+- 🛍️ Product Module → Product management and search  
+- 🛒 Cart Module → Cart operations  
+- 📦 Order Module → Order processing  
+
+Designed with a scalable structure similar to microservices.
+
+---
+
+## 🧩 Features
 
 ### 🔐 Authentication
-- User Signup
-- User Login
+- User Signup & Login
 - Password hashing (SHA256)
-- JWT Token generation
+- JWT Token authentication
+- Protected APIs
 
-### 🛍️ Product Management
-- Add new products
+---
+
+### 🛍️ Product Service (Week 2)
+- Add products
 - View all products
+- Get product by ID
+- Search products by name
+- Filter products by price
+- Input validation
+- Clean API responses
+
+---
 
 ### 🛒 Cart System
-- Add items to cart
-- View cart items
+- Add to cart
+- View cart
+- Update quantity
+- Remove item
+
+---
 
 ### 📦 Order System
 - Place order from cart
-- Automatically clears cart after order
-- View order history
+- Calculate total price
+- Clear cart after order
+- View orders
 
 ---
 
-## 🗄️ Database Design
+## 🗄️ Database Schema
 
-### Users Table
-- id
-- username
-- password
+### Users
+- id, username, password
 
-### Products Table
-- id
-- name
-- description
-- price
+### Products
+- id, name, description, price
 
-### Cart Table
-- id
-- username
-- product_id
-- quantity
+### Cart
+- id, username, product_id, quantity
 
-### Orders Table
-- id
-- username
-- product_id
-- quantity
+### Orders
+- id, username, product_id, quantity
 
 ---
 
 ## 🔗 API Endpoints
 
-### 🔐 Auth
+### Auth
 - POST `/signup`
 - POST `/login`
 
-### 🛍️ Products
+### Products
 - POST `/products/add`
 - GET `/products/`
+- GET `/products/{id}`
+- GET `/products/search`
+- GET `/products/filter`
 
-### 🛒 Cart
+### Cart
 - POST `/cart/add`
 - GET `/cart/`
+- PUT `/cart/update`
+- DELETE `/cart/delete`
 
-### 📦 Orders
+### Orders
 - POST `/orders/place`
 - GET `/orders/`
 
@@ -83,13 +102,13 @@ This project is designed in a scalable way, similar to microservices architectur
 - Python
 - SQLite
 - SQLAlchemy
-- JWT (python-jose)
+- JWT
 
 ---
 
-## ▶️ How to Run
+## ▶️ Run Project
 
 ```bash
 cd shopsphere-lite
 source venv/Scripts/activate
-uvicorn app.main:app --reloadShopSphere Lite Backend Project
+uvicorn app.main:app --reload
