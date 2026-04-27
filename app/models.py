@@ -8,6 +8,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     password = Column(String)
+    email = Column(String, unique=True, index=True)
+
 
 # PRODUCT MODEL
 class Product(Base):
@@ -35,3 +37,4 @@ class Order(Base):
     username = Column(String)
     product_id = Column(Integer)
     quantity = Column(Integer)
+
