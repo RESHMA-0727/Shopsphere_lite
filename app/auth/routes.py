@@ -36,19 +36,21 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     return payload["sub"]
 
 # SIGNUP
+
 @router.post("/signup")
-def signup(username: str, password: str, db: Session = Depends(get_db)):
+def signup(username: str, password: str, email: str, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.username == username).first()
+
     if existing_user:
         return {"error": "Username already exists"}
 
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    user = models.User(username=username, password=hashed_password)
+
+    user = models.User(username=username, password=hashed_password, email=email)
     db.add(user)
     db.commit()
 
     return {"message": "User created successfully"}
-
 # LOGIN
 @router.post("/login")
 def login(username: str, password: str, db: Session = Depends(get_db)):
