@@ -38,3 +38,10 @@ class Order(Base):
     product_id = Column(Integer)
     quantity = Column(Integer)
 
+# Stores user wishlist items
+class Wishlist(Base):
+    __tablename__ = "wishlist"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String)
+    product_id = Column(Integer)

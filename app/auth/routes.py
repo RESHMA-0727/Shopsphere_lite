@@ -1,3 +1,4 @@
+from app.logger import logger
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -49,7 +50,7 @@ def signup(username: str, password: str, email: str, db: Session = Depends(get_d
     user = models.User(username=username, password=hashed_password, email=email)
     db.add(user)
     db.commit()
-
+    logger.info(f"New user registered: {username}")
     return {"message": "User created successfully"}
 # LOGIN
 @router.post("/login")
@@ -62,4 +63,5 @@ def login(username: str, password: str, db: Session = Depends(get_db)):
         return {"error": "Invalid credentials"}
 
     token = create_access_token({"sub": user.username})
+    logger.info(f"User logged in: {username}")
     return {"access_token": token}
