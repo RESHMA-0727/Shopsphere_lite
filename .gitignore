@@ -1,5 +1,5 @@
-venv/
 __pycache__/
 *.pyc
 test.db
 app.log
+venv/
