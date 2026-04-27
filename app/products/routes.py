@@ -30,8 +30,8 @@ def add_product(name: str, description: str, price: int, db: Session = Depends(g
 
 # GET ALL PRODUCTS (CLEAN RESPONSE)
 @router.get("/")
-def get_products(db: Session = Depends(get_db)):
-    products = db.query(models.Product).all()
+def get_products(skip: int = 0, limit: int = 5, db: Session = Depends(get_db)):
+    products = db.query(models.Product).offset(skip).limit(limit).all()
 
     return [
         {
