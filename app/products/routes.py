@@ -14,20 +14,31 @@ def get_db():
     finally:
         db.close()
 
-# ADD PRODUCT
+# ADD PRODUCT (WITH STOCK)
 @router.post("/add")
-def add_product(name: str, description: str, price: int, db: Session = Depends(get_db)):
+def add_product(name: str, description: str, price: int, stock: int,
+                db: Session = Depends(get_db)):
+
     if not name.strip():
         return {"error": "Product name cannot be empty"}
 
     if price <= 0:
         return {"error": "Price must be greater than zero"}
 
-    product = models.Product(name=name, description=description, price=price)
+    if stock < 0:
+        return {"error": "Stock cannot be negative"}
+
+    product = models.Product(
+        name=name,
+        description=description,
+        price=price,
+        stock=stock
+    )
+
     db.add(product)
     db.commit()
 
-    logger.info(f"Product added: {name}")
+    logger.info(f"Product added: {name} with stock {stock}")
 
     return {"message": "Product added successfully"}
 
@@ -42,22 +53,23 @@ def get_products(skip: int = 0, limit: int = 5, db: Session = Depends(get_db)):
         {
             "id": p.id,
             "name": p.name,
-            "price": p.price
+            "price": p.price,
+            "stock": p.stock
         }
         for p in products
     ]
 
-# 🔍 SEARCH PRODUCTS (MUST COME BEFORE {product_id})
+# SEARCH PRODUCTS
 @router.get("/search")
 def search_products(name: str, db: Session = Depends(get_db)):
     results = db.query(models.Product).filter(models.Product.name.contains(name)).all()
 
     return [
-        {"id": p.id, "name": p.name, "price": p.price}
+        {"id": p.id, "name": p.name, "price": p.price, "stock": p.stock}
         for p in results
     ]
 
-# 💰 FILTER PRODUCTS (MUST COME BEFORE {product_id})
+# FILTER PRODUCTS
 @router.get("/filter")
 def filter_products(min_price: int, max_price: int, db: Session = Depends(get_db)):
     results = db.query(models.Product).filter(
@@ -66,11 +78,11 @@ def filter_products(min_price: int, max_price: int, db: Session = Depends(get_db
     ).all()
 
     return [
-        {"id": p.id, "name": p.name, "price": p.price}
+        {"id": p.id, "name": p.name, "price": p.price, "stock": p.stock}
         for p in results
     ]
 
-# GET PRODUCT BY ID (ALWAYS LAST)
+# GET PRODUCT BY ID (LAST)
 @router.get("/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
@@ -82,5 +94,6 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
         "id": product.id,
         "name": product.name,
         "description": product.description,
-        "price": product.price
+        "price": product.price,
+        "stock": product.stock
     }
