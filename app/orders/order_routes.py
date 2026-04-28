@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app import models
 from app.auth.routes import get_current_user
+from app import models
+from app.logger import logger
 
 router = APIRouter(prefix="/orders")
 
+# DB connection
 def get_db():
     db = SessionLocal()
     try:
@@ -18,48 +20,51 @@ def get_db():
 def place_order(db: Session = Depends(get_db),
                 user: str = Depends(get_current_user)):
 
-    if not user:
-        return {"error": "Unauthorized"}
-
     cart_items = db.query(models.Cart).filter(models.Cart.username == user).all()
 
     if not cart_items:
         return {"error": "Cart is empty"}
 
-    total_price = 0
-    orders_created = []
-
     for item in cart_items:
-        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+        order = models.Order(
+            username=user,
+            product_id=item.product_id,
+            quantity=item.quantity
+        )
+        db.add(order)
 
-        if product:
-            total_price += product.price * item.quantity
+    db.commit()
 
-            order = models.Order(
-                username=item.username,
-                product_id=item.product_id,
-                quantity=item.quantity
-            )
-            db.add(order)
-            orders_created.append({
-                "product_id": item.product_id,
-                "quantity": item.quantity
-            })
-
+    # Clear cart
     db.query(models.Cart).filter(models.Cart.username == user).delete()
     db.commit()
 
-    return {
-        "message": "Order placed successfully",
-        "total_price": total_price,
-        "items": orders_created
-    }
+    logger.info(f"Order placed by user: {user}")
 
-# VIEW ORDERS
+    return {"message": "Order placed successfully"}
+
+# GET ORDER HISTORY (UPGRADED)
 @router.get("/")
 def get_orders(db: Session = Depends(get_db),
                user: str = Depends(get_current_user)):
 
     orders = db.query(models.Order).filter(models.Order.username == user).all()
 
-    return {"orders": orders}
+    if not orders:
+        return {"message": "No orders found"}
+
+    result = []
+
+    for order in orders:
+        product = db.query(models.Product).filter(models.Product.id == order.product_id).first()
+
+        result.append({
+            "product_name": product.name if product else "Unknown",
+            "quantity": order.quantity,
+            "price": product.price if product else 0,
+            "total": (product.price * order.quantity) if product else 0
+        })
+
+    logger.info(f"Fetched order history for user: {user}")
+
+    return result
