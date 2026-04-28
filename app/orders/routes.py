@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app import models
 from app.auth.routes import get_current_user
+from app import models
+from app.logger import logger
 
 router = APIRouter(prefix="/cart")
 
+# DB connection
 def get_db():
     db = SessionLocal()
     try:
@@ -13,37 +15,48 @@ def get_db():
     finally:
         db.close()
 
-# ADD TO CART
+# ADD TO CART (NO DUPLICATES)
 @router.post("/add")
 def add_to_cart(product_id: int, quantity: int,
                 db: Session = Depends(get_db),
                 user: str = Depends(get_current_user)):
 
-    if not user:
-        return {"error": "Unauthorized"}
+    existing_item = db.query(models.Cart).filter(
+        models.Cart.username == user,
+        models.Cart.product_id == product_id
+    ).first()
 
-    product = db.query(models.Product).filter(models.Product.id == product_id).first()
-    if not product:
-        return {"error": "Product not found"}
+    if existing_item:
+        existing_item.quantity += quantity
+        db.commit()
 
-    item = models.Cart(username=user, product_id=product_id, quantity=quantity)
+        logger.info(f"Updated cart item for {user}, product {product_id}")
+
+        return {"message": "Cart updated"}
+
+    item = models.Cart(
+        username=user,
+        product_id=product_id,
+        quantity=quantity
+    )
+
     db.add(item)
     db.commit()
 
-    return {"message": "Item added to cart", "product_id": product_id, "quantity": quantity}
+    logger.info(f"Added to cart: {user}, product {product_id}")
+
+    return {"message": "Added to cart"}
 
 # VIEW CART
 @router.get("/")
 def view_cart(db: Session = Depends(get_db),
               user: str = Depends(get_current_user)):
 
-    if not user:
-        return {"error": "Unauthorized"}
-
     items = db.query(models.Cart).filter(models.Cart.username == user).all()
-    return {"cart_items": items}
 
-# UPDATE CART ITEM
+    return items
+
+# UPDATE CART
 @router.put("/update")
 def update_cart(product_id: int, quantity: int,
                 db: Session = Depends(get_db),
@@ -55,12 +68,12 @@ def update_cart(product_id: int, quantity: int,
     ).first()
 
     if not item:
-        return {"error": "Item not found in cart"}
+        return {"error": "Item not found"}
 
     item.quantity = quantity
     db.commit()
 
-    return {"message": "Cart updated successfully!!"}
+    return {"message": "Cart updated"}
 
 # DELETE FROM CART
 @router.delete("/delete")
