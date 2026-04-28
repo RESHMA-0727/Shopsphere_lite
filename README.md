@@ -63,20 +63,19 @@ This project demonstrates real-world backend features like authentication, cart 
 
 ## ▶️ How to Run
 
-```bash
+bash
 uvicorn app.main:app --reload
 Open in browser:
 http://127.0.0.1:8000/docs
 
 💡 Why This Project Stands Out
->Clean modular backend architecture
->Real-world e-commerce features
->Proper API design and structure
->Inventory and order management logic
->Production-style implementation
+1️⃣Clean modular backend architecture
+2️⃣Real-world e-commerce features
+3️⃣Proper API design and structure
+4️⃣Inventory and order management logic
+5️⃣Production-style implementation
 
 Author
-
 RESHMA-0727
 
 
