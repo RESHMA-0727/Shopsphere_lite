@@ -1,114 +1,82 @@
-# 🛍️ ShopSphere Lite - E-commerce Backend
+# 🛒 ShopSphere Lite
 
-## 🚀 Overview
-ShopSphere Lite is a modular e-commerce backend built using FastAPI.  
-It simulates a real-world online shopping system with authentication, product management, cart functionality, and order processing.
+A clean and scalable e-commerce backend built using FastAPI.
 
----
-
-## 🧠 Architecture
-
-The system is divided into modules:
-
-- 🔐 Auth Module → Signup, Login, JWT Authentication  
-- 🛍️ Product Module → Product management and search  
-- 🛒 Cart Module → Cart operations  
-- 📦 Order Module → Order processing  
-
-Designed with a scalable structure similar to microservices.
+This project demonstrates real-world backend features like authentication, cart management, order processing, inventory control, and analytics.
 
 ---
 
-## 🧩 Features
+## 🚀 What This Project Does
+
+- Users can sign up and log in securely
+- Browse, search, and filter products
+- Add items to cart and place orders
+- Manage wishlist and product reviews
+- Track stock and prevent over-ordering
+- View analytics of the system
+
+---
+
+## 🔥 Key Features
 
 ### 🔐 Authentication
-- User Signup & Login
-- Password hashing (SHA256)
-- JWT Token authentication
-- Protected APIs
+- Secure signup & login
+- JWT-based authentication
 
----
-
-### 🛍️ Product Service (Week 2)
-- Add products
-- View all products
-- Get product by ID
-- Search products by name
-- Filter products by price
-- Input validation
-- Clean API responses
-
----
+### 📦 Product Management
+- Add and manage products
+- Search & filter functionality
+- Pagination support
+- Stock tracking
 
 ### 🛒 Cart System
-- Add to cart
-- View cart
-- Update quantity
-- Remove item
-
----
+- Add / update / delete items
+- Prevent duplicate entries
 
 ### 📦 Order System
-- Place order from cart
-- Calculate total price
-- Clear cart after order
-- View orders
+- Place orders
+- View order history with total cost
+- Automatic stock reduction
+
+### ❤️ Wishlist
+- Save products for later
+
+### ⭐ Reviews
+- Add ratings and comments
+
+### 📊 Analytics
+- Total users, products, and orders
+
+### 📊 Logging
+- Tracks API activity for debugging
 
 ---
 
-## 🗄️ Database Schema
+## 🛠 Tech Stack
 
-### Users
-- id, username, password
-
-### Products
-- id, name, description, price
-
-### Cart
-- id, username, product_id, quantity
-
-### Orders
-- id, username, product_id, quantity
-
----
-
-## 🔗 API Endpoints
-
-### Auth
-- POST `/signup`
-- POST `/login`
-
-### Products
-- POST `/products/add`
-- GET `/products/`
-- GET `/products/{id}`
-- GET `/products/search`
-- GET `/products/filter`
-
-### Cart
-- POST `/cart/add`
-- GET `/cart/`
-- PUT `/cart/update`
-- DELETE `/cart/delete`
-
-### Orders
-- POST `/orders/place`
-- GET `/orders/`
-
----
-
-## ⚙️ Tech Stack
 - FastAPI
-- Python
-- SQLite
 - SQLAlchemy
-- JWT
+- SQLite
+- JWT Authentication
 
 ---
 
-## ▶️ Run Project
+## ▶️ How to Run
 
 ```bash
-cd shopsphere-lite
-source venv/Scripts/activate
 uvicorn app.main:app --reload
+Open in browser:
+http://127.0.0.1:8000/docs
+
+💡 Why This Project Stands Out
+>Clean modular backend architecture
+>Real-world e-commerce features
+>Proper API design and structure
+>Inventory and order management logic
+>Production-style implementation
+
+Author
+
+RESHMA-0727
+
+
