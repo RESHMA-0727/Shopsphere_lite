@@ -15,7 +15,7 @@ def get_db():
     finally:
         db.close()
 
-# PLACE ORDER
+# PLACE ORDER (WITH STOCK VALIDATION)
 @router.post("/place")
 def place_order(db: Session = Depends(get_db),
                 user: str = Depends(get_current_user)):
@@ -26,16 +26,29 @@ def place_order(db: Session = Depends(get_db),
         return {"error": "Cart is empty"}
 
     for item in cart_items:
+        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+
+        if not product:
+            return {"error": f"Product {item.product_id} not found"}
+
+        # ❌ STOCK CHECK
+        if product.stock < item.quantity:
+            return {"error": f"Not enough stock for product {product.name}"}
+
+        # ✅ REDUCE STOCK
+        product.stock -= item.quantity
+
         order = models.Order(
             username=user,
             product_id=item.product_id,
             quantity=item.quantity
         )
+
         db.add(order)
 
     db.commit()
 
-    # Clear cart
+    # CLEAR CART
     db.query(models.Cart).filter(models.Cart.username == user).delete()
     db.commit()
 
@@ -43,7 +56,7 @@ def place_order(db: Session = Depends(get_db),
 
     return {"message": "Order placed successfully"}
 
-# GET ORDER HISTORY (UPGRADED)
+# GET ORDER HISTORY
 @router.get("/")
 def get_orders(db: Session = Depends(get_db),
                user: str = Depends(get_current_user)):
