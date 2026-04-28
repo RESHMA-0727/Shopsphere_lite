@@ -10,6 +10,7 @@ from app.products.review_routes import router as review_router
 from app.orders.routes import router as cart_router
 from app.orders.order_routes import router as order_router
 from app.orders.wishlist import router as wishlist_router
+from app.analytics import router as analytics_router  # ✅ NEW
 
 # Create DB tables
 models.Base.metadata.create_all(bind=engine)
@@ -24,6 +25,7 @@ app.include_router(review_router)
 app.include_router(cart_router)
 app.include_router(order_router)
 app.include_router(wishlist_router)
+app.include_router(analytics_router)  # ✅ NEW
 
 # Root endpoint
 @app.get("/")
