@@ -31,11 +31,10 @@ def place_order(db: Session = Depends(get_db),
         if not product:
             return {"error": f"Product {item.product_id} not found"}
 
-        # ❌ STOCK CHECK
         if product.stock < item.quantity:
             return {"error": f"Not enough stock for product {product.name}"}
 
-        # ✅ REDUCE STOCK
+        # Reduce stock
         product.stock -= item.quantity
 
         order = models.Order(
@@ -48,7 +47,7 @@ def place_order(db: Session = Depends(get_db),
 
     db.commit()
 
-    # CLEAR CART
+    # Clear cart
     db.query(models.Cart).filter(models.Cart.username == user).delete()
     db.commit()
 
@@ -56,7 +55,8 @@ def place_order(db: Session = Depends(get_db),
 
     return {"message": "Order placed successfully"}
 
-# GET ORDER HISTORY
+
+# GET ORDER HISTORY (WITH DETAILS)
 @router.get("/")
 def get_orders(db: Session = Depends(get_db),
                user: str = Depends(get_current_user)):
@@ -72,6 +72,7 @@ def get_orders(db: Session = Depends(get_db),
         product = db.query(models.Product).filter(models.Product.id == order.product_id).first()
 
         result.append({
+            "order_id": order.id,   # ✅ IMPORTANT for cancel
             "product_name": product.name if product else "Unknown",
             "quantity": order.quantity,
             "price": product.price if product else 0,
@@ -81,3 +82,33 @@ def get_orders(db: Session = Depends(get_db),
     logger.info(f"Fetched order history for user: {user}")
 
     return result
+
+
+# CANCEL ORDER (WITH STOCK RESTORE)
+@router.post("/cancel")
+def cancel_order(order_id: int,
+                 db: Session = Depends(get_db),
+                 user: str = Depends(get_current_user)):
+
+    order = db.query(models.Order).filter(
+        models.Order.id == order_id,
+        models.Order.username == user
+    ).first()
+
+    if not order:
+        return {"error": "Order not found"}
+
+    product = db.query(models.Product).filter(
+        models.Product.id == order.product_id
+    ).first()
+
+    # Restore stock
+    if product:
+        product.stock += order.quantity
+
+    db.delete(order)
+    db.commit()
+
+    logger.info(f"Order cancelled by {user}, stock restored")
+
+    return {"message": "Order cancelled and stock restored"}
