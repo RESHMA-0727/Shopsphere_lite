@@ -19,6 +19,7 @@ class Product(Base):
     name = Column(String)
     description = Column(String)
     price = Column(Integer)
+    stock = Column(Integer) 
 
 # CART MODEL
 class Cart(Base):
@@ -38,6 +39,9 @@ class Order(Base):
     product_id = Column(Integer)
     quantity = Column(Integer)
 
+    # NEW
+    status = Column(String, default="Pending")
+
 # Stores user wishlist items
 class Wishlist(Base):
     __tablename__ = "wishlist"
@@ -45,3 +49,13 @@ class Wishlist(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String)
     product_id = Column(Integer)
+
+# Stores user reviews for products
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String)
+    product_id = Column(Integer)
+    rating = Column(Integer)
+    comment = Column(String)

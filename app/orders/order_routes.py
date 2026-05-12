@@ -15,7 +15,7 @@ def get_db():
     finally:
         db.close()
 
-# PLACE ORDER (WITH STOCK VALIDATION)
+# PLACE ORDER
 @router.post("/place")
 def place_order(db: Session = Depends(get_db),
                 user: str = Depends(get_current_user)):
@@ -40,7 +40,8 @@ def place_order(db: Session = Depends(get_db),
         order = models.Order(
             username=user,
             product_id=item.product_id,
-            quantity=item.quantity
+            quantity=item.quantity,
+            status="Pending"
         )
 
         db.add(order)
@@ -55,8 +56,7 @@ def place_order(db: Session = Depends(get_db),
 
     return {"message": "Order placed successfully"}
 
-
-# GET ORDER HISTORY (WITH DETAILS)
+# GET ORDERS
 @router.get("/")
 def get_orders(db: Session = Depends(get_db),
                user: str = Depends(get_current_user)):
@@ -72,19 +72,39 @@ def get_orders(db: Session = Depends(get_db),
         product = db.query(models.Product).filter(models.Product.id == order.product_id).first()
 
         result.append({
-            "order_id": order.id,   # ✅ IMPORTANT for cancel
+            "order_id": order.id,
             "product_name": product.name if product else "Unknown",
             "quantity": order.quantity,
+            "status": order.status,
             "price": product.price if product else 0,
             "total": (product.price * order.quantity) if product else 0
         })
 
-    logger.info(f"Fetched order history for user: {user}")
-
     return result
 
+# UPDATE ORDER STATUS
+@router.put("/update-status")
+def update_order_status(order_id: int,
+                        status: str,
+                        db: Session = Depends(get_db),
+                        user: str = Depends(get_current_user)):
 
-# CANCEL ORDER (WITH STOCK RESTORE)
+    order = db.query(models.Order).filter(
+        models.Order.id == order_id,
+        models.Order.username == user
+    ).first()
+
+    if not order:
+        return {"error": "Order not found"}
+
+    order.status = status
+    db.commit()
+
+    logger.info(f"Order {order_id} updated to {status}")
+
+    return {"message": f"Order status updated to {status}"}
+
+# CANCEL ORDER
 @router.post("/cancel")
 def cancel_order(order_id: int,
                  db: Session = Depends(get_db),
@@ -109,6 +129,6 @@ def cancel_order(order_id: int,
     db.delete(order)
     db.commit()
 
-    logger.info(f"Order cancelled by {user}, stock restored")
+    logger.info(f"Order cancelled by {user}")
 
     return {"message": "Order cancelled and stock restored"}
